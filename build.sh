@@ -23,6 +23,7 @@ AYASA520_WADEVINE="${AYASA520_WADEVINE:-0}"       # Options: 0, 1
 # Docker Registry configuration
 DOCKER_USERNAME="${DOCKER_USERNAME:-dockeruser}"
 PUSH_IMAGE="${PUSH_IMAGE:-0}"                   # Set to 1 to push the image to registry
+REDROID_LUNCH="${REDROID_LUNCH:-}"              # Required lunch combo (e.g. redroid_x86_64-userdebug)
 
 # Intelligent Dependency Detection (fallback to parent if local not found)
 [ ! -d "$PATCH_PATH" ] && [ -d "$PROJROOT/redroid-patches" ] && PATCH_PATH="$PROJROOT/redroid-patches"
@@ -61,6 +62,13 @@ fi
 # ============================================================
 # Prerequisite checks
 # ============================================================
+
+# 0. Required configuration
+if [ -z "$REDROID_LUNCH" ]; then
+    echo "Error: REDROID_LUNCH is empty."
+    echo "Set REDROID_LUNCH in your wrapper script (e.g., build_a13.sh/build_a14.sh)."
+    exit 1
+fi
 
 # 1. Required commands
 REQUIRED_CMDS=(git git-lfs curl unzip python3 docker)
@@ -285,10 +293,11 @@ cd "$DOC_PATH/android-builder-docker" || exit 1
 docker build --build-arg userid=$(id -u) --build-arg groupid=$(id -g) --build-arg username=$(id -un) -t redroid-builder .
 # Build redroid
 echo "Starting redroid build within builder container..."
-docker run -it --rm --hostname redroid-builder --name redroid-builder -v "$BUILD_PATH":/src --entrypoint /bin/bash redroid-builder -lc "
+docker run -it --rm --hostname redroid-builder --name redroid-builder -v "$BUILD_PATH":/src -e REDROID_LUNCH="$REDROID_LUNCH" --entrypoint /bin/bash redroid-builder -lc "
     cd /src
     . build/envsetup.sh
-    lunch redroid_x86_64-ap2a-userdebug
+    echo \"Using lunch combo: \$REDROID_LUNCH\"
+    lunch \"\$REDROID_LUNCH\"
     m
 "
 

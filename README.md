@@ -8,9 +8,9 @@ Build and run custom redroid Docker images from AOSP source (Android 13/14), wit
 
 ## Repository layout
 
-- `build.sh`: Main end-to-end build pipeline.
-- `build_a13.sh`: Example Android 13 build configuration.
-- `build_a14.sh`: Example Android 14 build configuration.
+- `build.sh`: Main end-to-end build pipeline (expects `REDROID_LUNCH` to be set).
+- `build_a13.sh`: Android 13 build configuration wrapper.
+- `build_a14.sh`: Android 14 build configuration wrapper.
 - `start_a13.sh`: Run an Android 13 container image and print Google uncertified registration ID.
 - `start_a14.sh`: Run an Android 14 container image and print Google uncertified registration ID.
 
@@ -100,6 +100,7 @@ Common variables accepted by `build.sh`:
 - `AYASA520_ROOT` (``, `magisk`)
 - `AYASA520_NDK_TRANSLATION` (``, `ndk`, `houdini`)
 - `AYASA520_WADEVINE` (`0` or `1`)
+- `REDROID_LUNCH` (required lunch combo; examples: `redroid_x86_64-userdebug`, `redroid_x86_64-ap2a-userdebug`)
 - `REDROID_TAG` (optional manual image tag override)
 - `PUSH_IMAGE` (`0` or `1`)
 - `DOCKER_USERNAME` (used when pushing)
@@ -108,6 +109,7 @@ Example custom build:
 
 ```bash
 export ANDROID_VAR="android-14.0.0_r75"
+export REDROID_LUNCH="redroid_x86_64-ap2a-userdebug"
 export AYASA520_GAPPS="mindthegapps"
 export AYASA520_NDK_TRANSLATION="houdini"
 export AYASA520_ROOT="magisk"

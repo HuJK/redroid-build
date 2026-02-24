@@ -11,6 +11,7 @@ export AYASA520_ROOT=""
 export AYASA520_NDK_TRANSLATION="houdini"
 export AYASA520_WADEVINE=0
 export DOCKER_USERNAME=redroid
+export REDROID_LUNCH="redroid_x86_64-ap2a-userdebug"
 
 # Disable Docker Push for this example
 export PUSH_IMAGE=0
