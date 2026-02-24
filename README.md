@@ -12,8 +12,8 @@ https://hub.docker.com/r/whojk/redroid/tags
 
 - `docker pull whojk/redroid:14.0.0_mindthegapps_houdini`
 - `docker pull whojk/redroid:14.0.0_mindthegapps_houdini_magisk`
-- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini`
-- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_magisk`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_widevine`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_magisk_widevine`
 
 ## Repository layout
 
