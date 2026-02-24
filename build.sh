@@ -199,16 +199,18 @@ if [ ! -d "$AYASA520_PATH" ]; then
 fi
 
 # 1. Download Source Phase (Independent)
-if [ ! -d "$SOURCE_PATH" ] && [ ! -d "$BUILD_PATH" ]; then
+dir_has_content() {
+    [ -d "$1" ] && [ "$(ls -A "$1" 2>/dev/null)" ]
+}
+
+if ! dir_has_content "$SOURCE_PATH" && ! dir_has_content "$BUILD_PATH"; then
     echo "Downloading redroid source to $SOURCE_PATH..."
     mkdir -p "$SOURCE_PATH"
     cd "$SOURCE_PATH" || exit 1
     repo init -u https://android.googlesource.com/platform/manifest --git-lfs --depth=1 -b "$ANDROID_VAR"
-
     VERSION_MAJOR=$(echo "$ANDROID_VAR" | cut -d'-' -f2 | cut -d'.' -f1)
     echo "Adding local manifests for version $VERSION_MAJOR..."
     git clone https://github.com/remote-android/local_manifests.git .repo/local_manifests -b "${VERSION_MAJOR}.0.0"
-
     echo "Syncing redroid source in $SOURCE_PATH... Make sure 200GB available disk size."
     repo sync -c -j8
 else
