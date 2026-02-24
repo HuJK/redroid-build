@@ -21,7 +21,7 @@ docker run -it -d \
     -p 5555:5555 \
     --privileged \
     -v "$REDROID_DATA/data":/data \
-    whojk/redroid:14.0.0_mindthegapps_houdini \
+    whojk/redroid:13.0.0_mindthegapps_houdini_widevine \
     androidboot.redroid_width=1920 \
     androidboot.redroid_height=1080 \
     androidboot.redroid_dpi=240 \
