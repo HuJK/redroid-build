@@ -6,6 +6,15 @@ Build and run custom redroid Docker images from AOSP source (Android 13/14), wit
 - ARM translation (`ndk`, `houdini`)
 - Widevine patching
 
+## Pre-built Images:
+
+https://hub.docker.com/r/whojk/redroid/tags
+
+- `docker pull whojk/redroid:14.0.0_mindthegapps_houdini`
+- `docker pull whojk/redroid:14.0.0_mindthegapps_houdini_magisk`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_magisk`
+
 ## Repository layout
 
 - `build.sh`: Main end-to-end build pipeline (expects `REDROID_LUNCH` to be set).
