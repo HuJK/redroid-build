@@ -24,6 +24,7 @@ AYASA520_WADEVINE="${AYASA520_WADEVINE:-0}"       # Options: 0, 1
 DOCKER_USERNAME="${DOCKER_USERNAME:-dockeruser}"
 PUSH_IMAGE="${PUSH_IMAGE:-0}"                   # Set to 1 to push the image to registry
 REDROID_LUNCH="${REDROID_LUNCH:-}"              # Required lunch combo (e.g. redroid_x86_64-userdebug)
+BUILD_REDROID="${BUILD_REDROID:-auto}"          # Options: "auto", "always", "skip"
 
 # Intelligent Dependency Detection (fallback to parent if local not found)
 [ ! -d "$PATCH_PATH" ] && [ -d "$PROJROOT/redroid-patches" ] && PATCH_PATH="$PROJROOT/redroid-patches"
@@ -211,6 +212,22 @@ dir_has_content() {
     [ -d "$1" ] && [ "$(ls -A "$1" 2>/dev/null)" ]
 }
 
+apply_houdini_linkerconfig_patch() {
+    LINKERCONFIG_FILE="$BUILD_PATH/system/linkerconfig/contents/namespace/systemdefault.cc"
+    if [ ! -f "$LINKERCONFIG_FILE" ]; then
+        echo "Warning: $LINKERCONFIG_FILE not found. Skipping houdini linkerconfig patch."
+        return 0
+    fi
+
+    if grep -q 'ns.AddSearchPath("/system/lib/arm");' "$LINKERCONFIG_FILE"; then
+        echo "Houdini linkerconfig patch already applied in $LINKERCONFIG_FILE."
+        return 0
+    fi
+
+    echo "Applying houdini linkerconfig patch to $LINKERCONFIG_FILE..."
+    sed -i '/ns\.AddSearchPath(system_ext + "\/${LIB}");/a\  // for houdini\n  ns.AddSearchPath("/system/lib/arm");\n  ns.AddSearchPath("/system/lib64/arm64");' "$LINKERCONFIG_FILE"
+}
+
 if ! dir_has_content "$SOURCE_PATH" && ! dir_has_content "$BUILD_PATH"; then
     echo "Downloading redroid source to $SOURCE_PATH..."
     mkdir -p "$SOURCE_PATH"
@@ -228,7 +245,7 @@ fi
 # 2. Patch Policy Phase (Prepare build environment)
 # Skip if BUILD_PATH already exists and is non-empty (e.g., from a previous run)
 if [ -d "$BUILD_PATH" ] && [ "$(ls -A "$BUILD_PATH" 2>/dev/null)" ]; then
-    echo "Build directory $BUILD_PATH already exists and is non-empty. Skipping patch policy, apply patch, and linkerconfig patch."
+    echo "Build directory $BUILD_PATH already exists and is non-empty. Skipping patch policy and apply patch."
 else
     echo "Preparing build environment using PATCH_POLICY: $PATCH_POLICY"
 
@@ -273,37 +290,62 @@ else
     echo "Applying redroid patches from $PATCH_PATH to $BUILD_PATH..."
     "$PATCH_PATH/apply-patch.sh" "$BUILD_PATH" "$ANDROID_VAR"
 
-    # Apply houdini linkerconfig patch if houdini NDK translation is selected
-    if [ "$AYASA520_NDK_TRANSLATION" == "houdini" ]; then
-        LINKERCONFIG_FILE="$BUILD_PATH/system/linkerconfig/contents/namespace/systemdefault.cc"
-        if [ -f "$LINKERCONFIG_FILE" ]; then
-            echo "Applying houdini linkerconfig patch to $LINKERCONFIG_FILE..."
-            sed -i '/ns\.AddSearchPath(system_ext + "\/${LIB}");/a\  // for houdini\n  ns.AddSearchPath("/system/lib/arm");\n  ns.AddSearchPath("/system/lib64/arm64");' "$LINKERCONFIG_FILE"
-        else
-            echo "Warning: $LINKERCONFIG_FILE not found. Skipping houdini linkerconfig patch."
-        fi
-    fi
 fi
 
 cd "$BUILD_PATH" || exit 1
 
-# Build builder
-echo "Building redroid-builder docker image from $DOC_PATH..."
-cd "$DOC_PATH/android-builder-docker" || exit 1
-docker build --build-arg userid=$(id -u) --build-arg groupid=$(id -g) --build-arg username=$(id -un) -t redroid-builder .
-# Build redroid
-echo "Starting redroid build within builder container..."
-docker run -it --rm --hostname redroid-builder --name redroid-builder -v "$BUILD_PATH":/src -e REDROID_LUNCH="$REDROID_LUNCH" --entrypoint /bin/bash redroid-builder -lc "
-    cd /src
-    . build/envsetup.sh
-    echo \"Using lunch combo: \$REDROID_LUNCH\"
-    lunch \"\$REDROID_LUNCH\"
-    m
-"
+apply_houdini_linkerconfig_patch
+
+PRODUCT_OUT="$BUILD_PATH/out/target/product/redroid_x86_64"
+HAS_BUILD_ARTIFACTS=0
+[ -f "$PRODUCT_OUT/system.img" ] && [ -f "$PRODUCT_OUT/vendor.img" ] && HAS_BUILD_ARTIFACTS=1
+
+case "$BUILD_REDROID" in
+    "always")
+        SHOULD_BUILD_REDROID=1
+        ;;
+    "skip")
+        SHOULD_BUILD_REDROID=0
+        ;;
+    "auto")
+        if [ "$HAS_BUILD_ARTIFACTS" -eq 1 ]; then
+            SHOULD_BUILD_REDROID=0
+        else
+            SHOULD_BUILD_REDROID=1
+        fi
+        ;;
+    *)
+        echo "Error: Invalid BUILD_REDROID '$BUILD_REDROID'. Use 'auto', 'always', or 'skip'."
+        exit 1
+        ;;
+esac
+
+if [ "$SHOULD_BUILD_REDROID" -eq 1 ]; then
+    # Build builder
+    echo "Building redroid-builder docker image from $DOC_PATH..."
+    cd "$DOC_PATH/android-builder-docker" || exit 1
+    docker build --build-arg userid=$(id -u) --build-arg groupid=$(id -g) --build-arg username=$(id -un) -t redroid-builder .
+
+    # Build redroid
+    echo "Starting redroid build within builder container..."
+    docker run -it --rm --hostname redroid-builder --name redroid-builder -v "$BUILD_PATH":/src -e REDROID_LUNCH="$REDROID_LUNCH" --entrypoint /bin/bash redroid-builder -lc "
+        cd /src
+        . build/envsetup.sh
+        echo \"Using lunch combo: \$REDROID_LUNCH\"
+        lunch \"\$REDROID_LUNCH\"
+        m
+    "
+else
+    if [ "$HAS_BUILD_ARTIFACTS" -eq 1 ]; then
+        echo "Skipping redroid build: existing artifacts found in $PRODUCT_OUT."
+    else
+        echo "BUILD_REDROID=skip: skipping redroid build even though artifacts are missing."
+    fi
+fi
 
 # Create final image
 echo "Creating final redroid docker image from build artifacts..."
-cd "$BUILD_PATH/out/target/product/redroid_x86_64" || exit 0
+cd "$PRODUCT_OUT" || exit 0
 
 DEFAULT_TAG=$(echo "$ANDROID_VAR" | cut -d'-' -f2 | cut -d'_' -f1)
 REDROID_TAG="${REDROID_TAG:-$DEFAULT_TAG}"
@@ -370,12 +412,16 @@ if [ -f system.img ] && [ -f vendor.img ]; then
         FINAL_IMAGE="redroid/redroid:$FINAL_TAG"
     fi
 
+    REMOTE_IMAGE="$DOCKER_USERNAME/redroid:$FINAL_TAG"
+    echo "Tagging image for docker registry namespace: $REMOTE_IMAGE..."
+    docker tag "$FINAL_IMAGE" "$REMOTE_IMAGE"
+
     # Push to registry if requested
     if [ "$PUSH_IMAGE" -eq 1 ]; then
-        REMOTE_IMAGE="$DOCKER_USERNAME/redroid:$FINAL_TAG"
         echo "Pushing image to registry: $REMOTE_IMAGE..."
-        docker tag "$FINAL_IMAGE" "$REMOTE_IMAGE"
         docker push "$REMOTE_IMAGE"
+    else
+        echo "PUSH_IMAGE=$PUSH_IMAGE, skipping docker push."
     fi
 else
     echo "Build artifacts not found. Please check the build log."
