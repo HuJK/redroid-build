@@ -213,6 +213,21 @@ dir_has_content() {
     [ -d "$1" ] && [ "$(ls -A "$1" 2>/dev/null)" ]
 }
 
+compute_image_digest() {
+    python3 - "$1" "$2" <<'PY'
+import hashlib
+import sys
+
+hasher = hashlib.sha256()
+for path in sys.argv[1:]:
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            hasher.update(chunk)
+
+print(hasher.hexdigest()[:16])
+PY
+}
+
 apply_houdini_linkerconfig_patch() {
     LINKERCONFIG_FILE="$BUILD_PATH/system/linkerconfig/contents/namespace/systemdefault.cc"
     if [ ! -f "$LINKERCONFIG_FILE" ]; then
@@ -352,16 +367,29 @@ DEFAULT_TAG=$(echo "$ANDROID_VAR" | cut -d'-' -f2 | cut -d'_' -f1)
 REDROID_TAG="${REDROID_TAG:-$DEFAULT_TAG}"
 
 if [ -f system.img ] && [ -f vendor.img ]; then
-    mkdir -p system vendor
-    sudo mount system.img system -o ro
-    sudo mount vendor.img vendor -o ro
-    sudo tar --xattrs -c vendor -C system --exclude="./vendor" . | docker import -c 'ENTRYPOINT ["/init", "androidboot.hardware=redroid"]' - redroid:latest
-    docker tag redroid:latest "redroid/redroid:$REDROID_TAG"
-    sudo umount system vendor
-    rmdir system vendor
-    echo "Redroid base image created: redroid/redroid:$REDROID_TAG"
+    BASE_IMAGE_LATEST="redroid/redroid:${REDROID_TAG}-latest"
+    BASE_IMAGE_VERSIONED="redroid/redroid:$REDROID_TAG"
+    BASE_IMAGE_DIGEST=$(compute_image_digest system.img vendor.img)
+    BASE_IMAGE_CACHE="redroid/redroid:${REDROID_TAG}-base-${BASE_IMAGE_DIGEST}"
 
-    FINAL_IMAGE="redroid/redroid:$REDROID_TAG"
+    if docker image inspect "$BASE_IMAGE_CACHE" >/dev/null 2>&1; then
+        echo "Reusing cached redroid base image: $BASE_IMAGE_CACHE"
+    else
+        echo "Importing redroid base image from system.img/vendor.img..."
+        mkdir -p system vendor
+        sudo mount system.img system -o ro
+        sudo mount vendor.img vendor -o ro
+        sudo tar --xattrs -c vendor -C system --exclude="./vendor" . | docker import -c 'ENTRYPOINT ["/init", "androidboot.hardware=redroid"]' - "$BASE_IMAGE_CACHE"
+        sudo umount system vendor
+        rmdir system vendor
+    fi
+
+    docker tag "$BASE_IMAGE_CACHE" "$BASE_IMAGE_LATEST"
+    docker tag "$BASE_IMAGE_CACHE" "$BASE_IMAGE_VERSIONED"
+    docker tag "$BASE_IMAGE_CACHE" redroid:latest
+    echo "Redroid base image ready: $BASE_IMAGE_LATEST (cache: $BASE_IMAGE_CACHE)"
+
+    FINAL_IMAGE="$BASE_IMAGE_VERSIONED"
     FINAL_TAG="$REDROID_TAG"
 
     # Post-processing with redroid-script (ayasa520)

@@ -34,7 +34,7 @@ for WIDEVINE in "${WIDEVINE_OPTIONS[@]}"; do
       export AYASA520_NDK_TRANSLATION="$TRANS"
 
       for REMOVE_ODEX in "${REMOVE_UI_ODEX_OPTIONS[@]}"; do
-        export AYASA520_REMOVE_UI_ODEX="$TRANS"
+        export AYASA520_REMOVE_UI_ODEX="$REMOVE_ODEX"
       
         echo "--------------------------------------"
         echo "Starting build with configuration..."
