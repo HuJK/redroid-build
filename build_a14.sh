@@ -1,34 +1,48 @@
 #!/bin/bash
+set -e
 
 # Example configuration for redroid build
 # Targeted version: Android 14
-# Features: GApps (MindTheGapps), Root(none, magisk), Libhoudini (ARM translation)
+# Features: GApps (MindTheGapps), Root(none, magisk), Translation(houdini, ndk), Widevine(0,1)
 
 # Environment Overrides
 export ANDROID_VAR="android-14.0.0_r75"
 export AYASA520_GAPPS="mindthegapps"
-export AYASA520_ROOT=""
-export AYASA520_NDK_TRANSLATION="houdini"
-export AYASA520_WADEVINE=0
 export DOCKER_USERNAME=whojk
 export REDROID_LUNCH="redroid_x86_64-ap2a-userdebug"
 
-# Disable Docker Push for this example
-export PUSH_IMAGE=0
+# Enable Docker Push
+export PUSH_IMAGE=1
 
-# Ensure we are in the script's directory and run build.sh
+# Ensure we are in the script's directory
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$SCRIPT_DIR" || exit 1
 
-echo "Starting build with configuration..."
-echo "Version: $ANDROID_VAR"
-echo "Features: GApps($AYASA520_GAPPS), Root($AYASA520_ROOT), Translation($AYASA520_NDK_TRANSLATION)"
+# Build matrix
+ROOT_OPTIONS=("" "magisk")
+TRANSLATION_OPTIONS=("houdini" "")
+WIDEVINE_OPTIONS=("0")
 
-bash ./build.sh
+for WIDEVINE in "${WIDEVINE_OPTIONS[@]}"; do
+  export AYASA520_WADEVINE="$WIDEVINE"
 
-export AYASA520_ROOT="magisk"
+  for ROOT in "${ROOT_OPTIONS[@]}"; do
+    export AYASA520_ROOT="$ROOT"
 
-echo "Starting build with configuration..."
-echo "Version: $ANDROID_VAR"
-echo "Features: GApps($AYASA520_GAPPS), Root($AYASA520_ROOT), Translation($AYASA520_NDK_TRANSLATION)"
-bash ./build.sh
+    for TRANS in "${TRANSLATION_OPTIONS[@]}"; do
+      export AYASA520_NDK_TRANSLATION="$TRANS"
+
+      echo "--------------------------------------"
+      echo "Starting build with configuration..."
+      echo "Version: $ANDROID_VAR"
+      echo "GApps: $AYASA520_GAPPS"
+      echo "Widevine: $AYASA520_WADEVINE"
+      echo "Root: ${AYASA520_ROOT:-none}"
+      echo "Translation: $AYASA520_NDK_TRANSLATION"
+      echo "Lunch: $REDROID_LUNCH"
+      echo "--------------------------------------"
+
+      bash ./build.sh
+    done
+  done
+done

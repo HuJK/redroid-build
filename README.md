@@ -10,16 +10,28 @@ Build and run custom redroid Docker images from AOSP source (Android 13/14), wit
 
 https://hub.docker.com/r/whojk/redroid/tags
 
-- `docker pull whojk/redroid:14.0.0_mindthegapps_houdini`
-- `docker pull whojk/redroid:14.0.0_mindthegapps_houdini_magisk`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk_magisk_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini_magisk_widevine`
 - `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_widevine`
 - `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_magisk_widevine`
+- `docker pull whojk/redroid:14.0.0_mindthegapps_houdini`
+- `docker pull whojk/redroid:14.0.0_mindthegapps_houdini_magisk`
 
 ## Repository layout
 
+Build script
+
 - `build.sh`: Main end-to-end build pipeline (expects `REDROID_LUNCH` to be set).
+- `build_a12.sh`: Android 12 build configuration wrapper.
 - `build_a13.sh`: Android 13 build configuration wrapper.
 - `build_a14.sh`: Android 14 build configuration wrapper.
+
+Run script
+
+- `start_a12.sh`: Run an Android 12 container image and print Google uncertified registration ID.
+- `start_a12a.sh`: Run an Android 12(ndk) container image and print Google uncertified registration ID.
 - `start_a13.sh`: Run an Android 13 container image and print Google uncertified registration ID.
 - `start_a14.sh`: Run an Android 14 container image and print Google uncertified registration ID.
 
@@ -65,106 +77,6 @@ Build host requirements used by `build.sh`:
 Runtime requirements used by `start_a13.sh` / `start_a14.sh`:
 - `adb`, `sqlite3`
 - Kernel binder module support (`binder_linux`)
-
-## Quick start
-
-### Build Android 14 images
-
-```bash
-chmod +x build.sh build_a14.sh
-sudo ./build_a14.sh
-```
-
-### Build Android 13 images
-
-```bash
-chmod +x build.sh build_a13.sh
-sudo ./build_a13.sh
-```
-
-Both example scripts run `build.sh` twice:
-1. without root
-2. with `magisk`
-
-## Build outputs
-
-`build.sh` first creates:
-- `redroid/redroid:<android_version>`
-
-Then applies optional post-processing via `redroid-script`, producing tags like:
-- `redroid/redroid:14.0.0_mindthegapps_houdini`
-- `redroid/redroid:14.0.0_mindthegapps_houdini_magisk`
-- `redroid/redroid:13.0.0_mindthegapps_houdini_widevine`
-
-If `PUSH_IMAGE=1`, final image is pushed as:
-- `<DOCKER_USERNAME>/redroid:<final_tag>`
-
-## Configuration (environment variables)
-
-Common variables accepted by `build.sh`:
-
-- `ANDROID_VAR` (default: `android-14.0.0_r75`)
-- `PATCH_POLICY` (`cp`, `mv`, `overlayfs`; default: `overlayfs`)
-- `AYASA520_GAPPS` (``, `gapps`, `litegapps`, `mindthegapps`)
-- `AYASA520_ROOT` (``, `magisk`)
-- `AYASA520_NDK_TRANSLATION` (``, `ndk`, `houdini`)
-- `AYASA520_WADEVINE` (`0` or `1`)
-- `REDROID_LUNCH` (required lunch combo; examples: `redroid_x86_64-userdebug`, `redroid_x86_64-ap2a-userdebug`)
-- `REDROID_TAG` (optional manual image tag override)
-- `PUSH_IMAGE` (`0` or `1`)
-- `DOCKER_USERNAME` (used when pushing)
-
-Example custom build:
-
-```bash
-export ANDROID_VAR="android-14.0.0_r75"
-export REDROID_LUNCH="redroid_x86_64-ap2a-userdebug"
-export AYASA520_GAPPS="mindthegapps"
-export AYASA520_NDK_TRANSLATION="houdini"
-export AYASA520_ROOT="magisk"
-export AYASA520_WADEVINE=0
-export PUSH_IMAGE=0
-sudo ./build.sh
-```
-
-## Clean generated artifacts
-
-To remove generated build artifacts, overlays, and cloned helper repos while preserving `source/`:
-
-```bash
-sudo ./build.sh --clean
-```
-
-## Run containers
-
-Start Android 14:
-
-```bash
-chmod +x start_a14.sh
-sudo ./start_a14.sh
-```
-
-Start Android 13:
-
-```bash
-chmod +x start_a13.sh
-sudo ./start_a13.sh
-```
-
-The scripts:
-- load binder devices
-- start container exposing `adb` on `localhost:5555`
-- enable `adbd`
-- read Android ID from `gservices.db` for Google Play uncertified device registration
-
-## Useful Docker commands
-
-```bash
-docker ps
-docker logs -f redroid14
-docker stop redroid14
-docker rm redroid14
-```
 
 ## Notes
 
