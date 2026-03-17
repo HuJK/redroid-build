@@ -22,6 +22,7 @@ cd "$SCRIPT_DIR" || exit 1
 ROOT_OPTIONS=("" "magisk")
 TRANSLATION_OPTIONS=("houdini" "ndk" "")
 WIDEVINE_OPTIONS=("0" "1")
+REMOVE_UI_ODEX_OPTIONS=("0" "1")
 
 for WIDEVINE in "${WIDEVINE_OPTIONS[@]}"; do
   export AYASA520_WADEVINE="$WIDEVINE"
@@ -32,18 +33,21 @@ for WIDEVINE in "${WIDEVINE_OPTIONS[@]}"; do
     for TRANS in "${TRANSLATION_OPTIONS[@]}"; do
       export AYASA520_NDK_TRANSLATION="$TRANS"
 
-      echo "--------------------------------------"
-      echo "Starting build with configuration..."
-      echo "Version: $ANDROID_VAR"
-      echo "GApps: $AYASA520_GAPPS"
-      echo "Widevine: $AYASA520_WADEVINE"
-      echo "Root: ${AYASA520_ROOT:-none}"
-      echo "Translation: $AYASA520_NDK_TRANSLATION"
-      echo "Lunch: $REDROID_LUNCH"
-      echo "--------------------------------------"
+      for REMOVE_ODEX in "${REMOVE_UI_ODEX_OPTIONS[@]}"; do
+        export AYASA520_REMOVE_UI_ODEX="$TRANS"
+      
+        echo "--------------------------------------"
+        echo "Starting build with configuration..."
+        echo "Version: $ANDROID_VAR"
+        echo "GApps: $AYASA520_GAPPS"
+        echo "Widevine: $AYASA520_WADEVINE"
+        echo "Root: ${AYASA520_ROOT:-none}"
+        echo "Translation: $AYASA520_NDK_TRANSLATION"
+        echo "Lunch: $REDROID_LUNCH"
+        echo "--------------------------------------"
 
-      bash ./build.sh
-
+        bash ./build.sh
+      done
     done
   done
 done

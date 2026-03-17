@@ -1,6 +1,9 @@
 # redroid-build
 
-Build and run custom redroid Docker images from AOSP source (Android 13/14), with optional:
+My custom redroid image build script. 
+Build from [redroid](https://github.com/remote-android/redroid-doc) and [redroid-script](https://github.com/ayasa520/redroid-script)
+
+Build and run custom redroid Docker images from AOSP source (Android 12/13/14), with optional:
 - GApps (`gapps`, `litegapps`, `mindthegapps`)
 - Root (`magisk`)
 - ARM translation (`ndk`, `houdini`)
@@ -10,14 +13,57 @@ Build and run custom redroid Docker images from AOSP source (Android 13/14), wit
 
 https://hub.docker.com/r/whojk/redroid/tags
 
-- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk_widevine`
-- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk_magisk_widevine`
-- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini_widevine`
-- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini_magisk_widevine`
-- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_widevine`
-- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_magisk_widevine`
+Android 16:
+
+- `docker pull whojk/redroid:16.0.0_litegapps`
+- `docker pull whojk/redroid:16.0.0_litegapps_magisk`
+- `docker pull whojk/redroid:16.0.0_litegapps_houdini`
+- `docker pull whojk/redroid:16.0.0_litegapps_houdini_magisk`
+
+Android 15:
+
+- `docker pull whojk/redroid:15.0.0_litegapps`
+- `docker pull whojk/redroid:15.0.0_litegapps_magisk`
+- `docker pull whojk/redroid:15.0.0_litegapps_houdini`
+- `docker pull whojk/redroid:15.0.0_litegapps_houdini_magisk`
+
+Android 14:
+
+- `docker pull whojk/redroid:14.0.0_mindthegapps`
+- `docker pull whojk/redroid:14.0.0_mindthegapps_ndk`
+- `docker pull whojk/redroid:14.0.0_mindthegapps_magisk`
 - `docker pull whojk/redroid:14.0.0_mindthegapps_houdini`
+- `docker pull whojk/redroid:14.0.0_mindthegapps_ndk_magisk`
 - `docker pull whojk/redroid:14.0.0_mindthegapps_houdini_magisk`
+
+Android 13:
+
+- `docker pull whojk/redroid:13.0.0_mindthegapps`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_ndk`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_magisk`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_widevine`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_ndk_magisk`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_ndk_widevine`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_magisk_widevine`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_magisk`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_widevine`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_ndk_magisk_widevine`
+- `docker pull whojk/redroid:13.0.0_mindthegapps_houdini_magisk_widevine`
+
+Android 12:
+- `docker pull whojk/redroid:12.0.0_mindthegapps`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_magisk`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk_magisk`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_magisk_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini_magisk`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_ndk_magisk_widevine`
+- `docker pull whojk/redroid:12.0.0_mindthegapps_houdini_magisk_widevine`
 
 ## Repository layout
 

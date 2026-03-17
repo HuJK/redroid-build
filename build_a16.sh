@@ -6,8 +6,8 @@ set -e
 # Features: GApps (MindTheGapps), Root(none, magisk), Translation(houdini, ndk), Widevine(0,1)
 
 # Environment Overrides
-export ANDROID_VAR="android-14.0.0_r75"
-export AYASA520_GAPPS="mindthegapps"
+export ANDROID_VAR="android-16.0.0_r2"
+export AYASA520_GAPPS="litegapps"
 export DOCKER_USERNAME=whojk
 export REDROID_LUNCH="redroid_x86_64-ap2a-userdebug"
 
@@ -20,7 +20,7 @@ cd "$SCRIPT_DIR" || exit 1
 
 # Build matrix
 ROOT_OPTIONS=("" "magisk")
-TRANSLATION_OPTIONS=("houdini" "ndk" "")
+TRANSLATION_OPTIONS=("houdini" "")
 WIDEVINE_OPTIONS=("0")
 
 for WIDEVINE in "${WIDEVINE_OPTIONS[@]}"; do

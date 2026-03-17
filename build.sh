@@ -19,6 +19,7 @@ AYASA520_GAPPS="${AYASA520_GAPPS:-}"              # Options: "", "gapps", "liteg
 AYASA520_ROOT="${AYASA520_ROOT:-}"                # Options: "", "magisk"
 AYASA520_NDK_TRANSLATION="${AYASA520_NDK_TRANSLATION:-}"    # Options: "", "ndk", "houdini"
 AYASA520_WADEVINE="${AYASA520_WADEVINE:-0}"       # Options: 0, 1
+AYASA520_REMOVE_UI_ODEX="${AYASA520_REMOVE_UI_ODEX:-0}"       # Options: 0, 1
 
 # Docker Registry configuration
 DOCKER_USERNAME="${DOCKER_USERNAME:-dockeruser}"
@@ -204,7 +205,7 @@ fi
 # Clone redroid-script if not exist
 if [ ! -d "$AYASA520_PATH" ]; then
     echo "Cloning redroid-script to $AYASA520_PATH..."
-    git clone https://github.com/ayasa520/redroid-script.git "$AYASA520_PATH"
+    git clone https://github.com/rote66/redroid-script-openwrt.git "$AYASA520_PATH"
 fi
 
 # 1. Download Source Phase (Independent)
@@ -377,12 +378,12 @@ if [ -f system.img ] && [ -f vendor.img ]; then
         fi
 
         if [ "$AYASA520_GAPPS" == "litegapps" ]; then
-            SCRIPT_FLAGS="$SCRIPT_FLAGS -lg"
+            SCRIPT_FLAGS="$SCRIPT_FLAGS -l"
             FINAL_TAG="${FINAL_TAG}_litegapps"
         fi
 
         if [ "$AYASA520_GAPPS" == "mindthegapps" ]; then
-            SCRIPT_FLAGS="$SCRIPT_FLAGS -mtg"
+            SCRIPT_FLAGS="$SCRIPT_FLAGS -d"
             FINAL_TAG="${FINAL_TAG}_mindthegapps"
         fi
 
@@ -404,6 +405,11 @@ if [ -f system.img ] && [ -f vendor.img ]; then
         if [ "$AYASA520_WADEVINE" -eq 1 ]; then
             SCRIPT_FLAGS="$SCRIPT_FLAGS -w"
             FINAL_TAG="${FINAL_TAG}_widevine"
+        fi
+
+        if [ "$AYASA520_REMOVE_UI_ODEX" -eq 1 ]; then
+            SCRIPT_FLAGS="$SCRIPT_FLAGS -u"
+            FINAL_TAG="${FINAL_TAG}_systemui"
         fi
 
         cd "$AYASA520_PATH" || exit 1

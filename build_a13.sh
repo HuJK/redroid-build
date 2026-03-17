@@ -20,7 +20,7 @@ cd "$SCRIPT_DIR" || exit 1
 
 # Build matrix
 ROOT_OPTIONS=("" "magisk")
-TRANSLATION_OPTIONS=("houdini" "")
+TRANSLATION_OPTIONS=("houdini" "ndk" "")
 WIDEVINE_OPTIONS=("0" "1")
 
 for WIDEVINE in "${WIDEVINE_OPTIONS[@]}"; do
