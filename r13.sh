@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REDROID_NAME="redroid14"
+REDROID_NAME="redroid13"
 REDROID_DATA="$HOME/${REDROID_NAME}-data"
 
 # 1. Check dependencies
@@ -12,6 +12,7 @@ for cmd in adb sqlite3; do
 done
 
 modprobe binder_linux devices="binder,hwbinder,vndbinder"
+modprobe macvlan
 adb start-server
 
 mkdir -p "$REDROID_DATA"
@@ -29,8 +30,9 @@ docker run -it -d \
     androidboot.use_redroid_overlayfs=1 \
     androidboot.use_memfd=1 \
     androidboot.redroid_gpu_mode=host \
-    ro.secure=1 \
-    ro.debuggable=0 \
+    androidboot.redroid_gpu_node=/dev/dri/renderD128 \
+    ro.secure=0 \
+    ro.debuggable=1 \
     ro.setupwizard.mode=DISABLED \
     ro.product.cpu.abilist=x86_64,x86,arm64-v8a,armeabi-v7a,armeabi \
     ro.product.cpu.abilist32=x86,armeabi-v7a,armeabi \
@@ -60,10 +62,10 @@ fi
 
 docker exec -it "$REDROID_NAME" setprop ctl.start adbd
 
-# Extract and show android ID (retry up to 50 times)
+# Extract and show android ID (retry up to 30 times)
 echo -n "Waiting for play service init: "
-for i in $(seq 1 50); do
-    printf "\rWaiting for play service init: [%-50s] (%d/50)" "$(printf '#%.0s' $(seq 1 $i))" "$i"
+for i in $(seq 1 30); do
+    printf "\rWaiting for play service init: [%-30s] (%d/30)" "$(printf '#%.0s' $(seq 1 $i))" "$i"
     docker exec -i "$REDROID_NAME" cat /data/data/com.google.android.gsf/databases/gservices.db > "$REDROID_DATA/gservices.db" 2>/dev/null
     ANDROID_ID=$(sqlite3 "$REDROID_DATA/gservices.db" "select * from main where name = 'android_id';" 2>/dev/null | grep -oP '\d+')
     [ -n "$ANDROID_ID" ] && break
@@ -76,5 +78,5 @@ if [ -n "$ANDROID_ID" ]; then
     echo "Please register the android ID at https://www.google.com/android/uncertified with following ID to use Google Play:"
     echo "$ANDROID_ID"
 else
-    echo "Failed to retrieve android ID after 50 attempts."
+    echo "Failed to retrieve android ID after 30 attempts."
 fi
